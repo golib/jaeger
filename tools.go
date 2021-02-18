@@ -22,7 +22,7 @@ import (
 
 	_ "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger"
 	_ "github.com/mjibson/esc"
-	_ "github.com/securego/gosec/cmd/gosec"
+	_ "github.com/securego/gosec/v2/cmd/gosec"
 	_ "github.com/vektra/mockery/cmd/mockery"
 	_ "github.com/wadey/gocovmerge"
 	_ "golang.org/x/lint/golint"

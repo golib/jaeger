@@ -21,7 +21,7 @@ func makeMockConnector() (sqlmock.Sqlmock, Connector, error) {
 		return nil, nil, err
 	}
 
-	return mock, func(cfg *namespaceConfig) (*sql.DB, error) {
+	return mock, func(cfg *NamespaceConfig) (*sql.DB, error) {
 		return db, err
 	}, nil
 }

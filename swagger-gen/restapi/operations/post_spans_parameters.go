@@ -50,7 +50,7 @@ func (o *PostSpansParams) BindRequest(r *http.Request, route *middleware.Matched
 		var body models.ListOfSpans
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
 			if err == io.EOF {
-				res = append(res, errors.Required("spans", "body"))
+				res = append(res, errors.Required("spans", "body", nil))
 			} else {
 				res = append(res, errors.NewParseError("spans", "body", "", err))
 			}
@@ -63,7 +63,7 @@ func (o *PostSpansParams) BindRequest(r *http.Request, route *middleware.Matched
 		}
 
 	} else {
-		res = append(res, errors.Required("spans", "body"))
+		res = append(res, errors.Required("spans", "body", nil))
 	}
 
 	if len(res) > 0 {

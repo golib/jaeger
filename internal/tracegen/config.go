@@ -17,6 +17,7 @@ package tracegen
 import (
 	"flag"
 	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -26,14 +27,16 @@ import (
 
 // Config describes the test scenario.
 type Config struct {
-	Workers  int
-	Traces   int
-	Marshal  bool
-	Debug    bool
-	Firehose bool
-	Pause    time.Duration
-	Duration time.Duration
-	Service  string
+	Workers            int
+	Traces             int
+	Marshal            bool
+	Debug              bool
+	Firehose           bool
+	Pause              time.Duration
+	Duration           time.Duration
+	Service            string
+	ChainedServices    string
+	ChainedServiceApis string
 }
 
 // Flags registers config flags.
@@ -46,6 +49,9 @@ func (c *Config) Flags(fs *flag.FlagSet) {
 	fs.DurationVar(&c.Pause, "pause", time.Microsecond, "How long to pause before finishing trace")
 	fs.DurationVar(&c.Duration, "duration", 0, "For how long to run the test")
 	fs.StringVar(&c.Service, "service", "tracegen", "Service name to use")
+	fs.StringVar(&c.ChainedServiceApis, "chained-service-apis", "GET:/auth,GET:/feed/latest,POST:/feed/new,PATCH:/feed/privacy,POST:/feedback", "Fake apis")
+	fs.StringVar(&c.ChainedServices, "chained-services", "auth-service,redis-auth-cache;feed-service,redis-feed-cache,mysql-feed-data;search-service,es-service,ai-service", "Nested service names, separated by comma")
+
 }
 
 // Run executes the test scenario.
@@ -61,16 +67,18 @@ func Run(c *Config, logger *zap.Logger) error {
 	for i := 0; i < c.Workers; i++ {
 		wg.Add(1)
 		w := worker{
-			id:       i,
-			traces:   c.Traces,
-			marshal:  c.Marshal,
-			debug:    c.Debug,
-			firehose: c.Firehose,
-			pause:    c.Pause,
-			duration: c.Duration,
-			running:  &running,
-			wg:       &wg,
-			logger:   logger.With(zap.Int("worker", i)),
+			id:              i,
+			serviceApis:     strings.Split(c.ChainedServiceApis, ","),
+			chainedServices: strings.Split(c.ChainedServices, ";"),
+			traces:          c.Traces,
+			marshal:         c.Marshal,
+			debug:           c.Debug,
+			firehose:        c.Firehose,
+			pause:           c.Pause,
+			duration:        c.Duration,
+			running:         &running,
+			wg:              &wg,
+			logger:          logger.With(zap.Int("worker", i)),
 		}
 
 		go w.simulateTraces()

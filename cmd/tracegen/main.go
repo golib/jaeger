@@ -40,7 +40,7 @@ func main() {
 		ServiceName: cfg.Service,
 		Sampler: &jaegerConfig.SamplerConfig{
 			Type:  "const",
-			Param: 1,
+			Param: 100,
 		},
 		RPCMetrics: true,
 	}

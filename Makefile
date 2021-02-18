@@ -226,6 +226,10 @@ docker-hotrod:
 run-all-in-one: build-ui
 	go run -tags ui ./cmd/all-in-one --log-level debug
 
+.PHONY: run-all-in-one-clickhouse
+run-all-in-one-clickhouse: build-ui
+	SPAN_STORAGE_TYPE=clickhouse go run -tags ui ./cmd/all-in-one --log-level debug
+
 .PHONY: build-ui
 build-ui: cmd/query/app/ui/actual/gen_assets.go
 	# UI packaged assets are up-to-date. To force a rebuild, run `make clean`.
@@ -400,7 +404,7 @@ install-tools:
 	go install github.com/wadey/gocovmerge
 	go install golang.org/x/lint/golint
 	go install github.com/mjibson/esc
-	go install github.com/securego/gosec/cmd/gosec
+	go install github.com/securego/gosec/v2/cmd/gosec
 	go install honnef.co/go/tools/cmd/staticcheck
 
 .PHONY: install-ci

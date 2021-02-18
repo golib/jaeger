@@ -472,7 +472,6 @@ func runFactoryTest(tb testing.TB, test func(tb testing.TB, sw spanstore.Writer,
 }
 
 // Benchmarks intended for profiling
-
 func writeSpans(sw spanstore.Writer, tags []model.KeyValue, services, operations []string, traces, spans int, high uint64, tid time.Time) {
 	for i := 0; i < traces; i++ {
 		for j := 0; j < spans; j++ {

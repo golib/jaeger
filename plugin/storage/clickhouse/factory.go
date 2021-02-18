@@ -74,7 +74,7 @@ func (f *Factory) Initialize(metricsFactory metrics.Factory, logger *zap.Logger)
 	return nil
 }
 
-func (f *Factory) connect(cfg *namespaceConfig) (*sql.DB, error) {
+func (f *Factory) connect(cfg *NamespaceConfig) (*sql.DB, error) {
 	if cfg.Encoding != store.EncodingJSON && cfg.Encoding != store.EncodingProto {
 		return nil, fmt.Errorf("unknown encoding %q, supported: %q, %q", cfg.Encoding, store.EncodingJSON, store.EncodingProto)
 	}

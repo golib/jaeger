@@ -305,10 +305,10 @@ func (r *TraceReader) findTraceIDsInRange(ctx context.Context, params *spanstore
 	}
 
 	query = query + " AND -toUnixTimestamp(timestamp) <= -toUnixTimestamp(?)"
-	args = append(args, start.UTC().Format("2006-01-02T15:04:05"))
+	args = append(args, start.Format("2006-01-02T15:04:05"))
 
 	query = query + " AND -toUnixTimestamp(timestamp) >= -toUnixTimestamp(?)"
-	args = append(args, end.UTC().Format("2006-01-02T15:04:05"))
+	args = append(args, end.Format("2006-01-02T15:04:05"))
 
 	if params.DurationMin != 0 {
 		query = query + " AND durationUs >= ?"

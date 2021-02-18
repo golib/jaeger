@@ -1,6 +1,7 @@
 package spanstore
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -118,10 +119,10 @@ func (w *SpanWriter) writeModelBatch(batch []*model.Span) error {
 		return err
 	}
 
-	commited := false
+	committed := false
 
 	defer func() {
-		if !commited {
+		if !committed {
 			// Clickhouse does not support real rollback
 			_ = tx.Rollback()
 		}
@@ -153,7 +154,7 @@ func (w *SpanWriter) writeModelBatch(batch []*model.Span) error {
 		}
 	}
 
-	commited = true
+	committed = true
 
 	return tx.Commit()
 }
@@ -164,10 +165,10 @@ func (w *SpanWriter) writeIndexBatch(batch []*model.Span) error {
 		return err
 	}
 
-	commited := false
+	committed := false
 
 	defer func() {
-		if !commited {
+		if !committed {
 			// Clickhouse does not support real rollback
 			_ = tx.Rollback()
 		}
@@ -194,14 +195,22 @@ func (w *SpanWriter) writeIndexBatch(batch []*model.Span) error {
 		}
 	}
 
-	commited = true
+	committed = true
 
 	return tx.Commit()
 }
 
 // WriteSpan writes the encoded span
-func (w *SpanWriter) WriteSpan(span *model.Span) error {
-	w.spans <- span
+func (w *SpanWriter) WriteSpan(ctx context.Context, span *model.Span) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	select {
+	case w.spans <- span:
+	default:
+		w.logger.Warn("Failed to write span: %v", zap.String("span", span.String()))
+	}
 	return nil
 }
 

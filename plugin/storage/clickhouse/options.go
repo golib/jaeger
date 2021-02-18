@@ -1,12 +1,12 @@
 package clickhouse
 
 import (
-	"database/sql"
 	"flag"
 	"time"
 
 	"github.com/spf13/viper"
 
+	_ "github.com/ClickHouse/clickhouse-go"
 	"github.com/jaegertracing/jaeger/plugin/storage/clickhouse/spanstore"
 )
 
@@ -33,7 +33,7 @@ const (
 )
 
 // NamespaceConfig is Clickhouse's internal configuration data
-type namespaceConfig struct {
+type NamespaceConfig struct {
 	namespace       string
 	Enabled         bool
 	Datasource      string
@@ -46,33 +46,17 @@ type namespaceConfig struct {
 	Connector       Connector
 }
 
-// Connecto defines how to connect to the database
-type Connector func(cfg *namespaceConfig) (*sql.DB, error)
-
-func defaultConnector(cfg *namespaceConfig) (*sql.DB, error) {
-	db, err := sql.Open("clickhouse", cfg.Datasource)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
-}
-
 // Options store storage plugin related configs
 type Options struct {
-	primary *namespaceConfig
+	primary *NamespaceConfig
 
-	others map[string]*namespaceConfig
+	others map[string]*NamespaceConfig
 }
 
 // NewOptions creates a new Options struct.
 func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 	options := &Options{
-		primary: &namespaceConfig{
+		primary: &NamespaceConfig{
 			namespace:       primaryNamespace,
 			Enabled:         true,
 			Datasource:      defaultDatasource,
@@ -84,12 +68,12 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 			Encoding:        defaultEncoding,
 			Connector:       defaultConnector,
 		},
-		others: make(map[string]*namespaceConfig, len(otherNamespaces)),
+		others: make(map[string]*NamespaceConfig, len(otherNamespaces)),
 	}
 
 	for _, namespace := range otherNamespaces {
 		if namespace == archiveNamespace {
-			options.others[namespace] = &namespaceConfig{
+			options.others[namespace] = &NamespaceConfig{
 				namespace:       namespace,
 				Datasource:      defaultDatasource,
 				OperationsTable: "",
@@ -101,7 +85,7 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				Connector:       defaultConnector,
 			}
 		} else {
-			options.others[namespace] = &namespaceConfig{namespace: namespace}
+			options.others[namespace] = &NamespaceConfig{namespace: namespace}
 		}
 	}
 
@@ -116,7 +100,7 @@ func (opt *Options) AddFlags(flagSet *flag.FlagSet) {
 	}
 }
 
-func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
+func addFlags(flagSet *flag.FlagSet, nsConfig *NamespaceConfig) {
 	if nsConfig.namespace == archiveNamespace {
 		flagSet.Bool(
 			nsConfig.namespace+suffixEnabled,
@@ -177,7 +161,7 @@ func (opt *Options) InitFromViper(v *viper.Viper) {
 	}
 }
 
-func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
+func initFromViper(cfg *NamespaceConfig, v *viper.Viper) {
 	cfg.Enabled = v.GetBool(cfg.namespace + suffixEnabled)
 	cfg.Datasource = v.GetString(cfg.namespace + suffixDatasource)
 	cfg.IndexTable = v.GetString(cfg.namespace + suffixIndexTable)
@@ -189,6 +173,6 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 }
 
 // GetPrimary returns the primary namespace configuration
-func (opt *Options) getPrimary() *namespaceConfig {
+func (opt *Options) getPrimary() *NamespaceConfig {
 	return opt.primary
 }
